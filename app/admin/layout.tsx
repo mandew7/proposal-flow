@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const user = await requireUser();
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const user = await requireAdmin();
 
   return (
     <div className="min-h-screen bg-slate-50 lg:flex">

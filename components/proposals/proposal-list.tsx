@@ -1,39 +1,44 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { changeProposalStatusAction, deleteProposalAction } from "@/app/actions/proposals";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/mock-data";
-import { useProposalFlow } from "@/lib/proposalflow-store";
-import type { ProposalStatus } from "@/lib/types";
+import { formatCurrency, formatDate } from "@/lib/format";
 
-const statuses: Array<"All" | ProposalStatus> = [
-  "All",
-  "Draft",
-  "Sent",
-  "Viewed",
-  "Accepted",
-  "Rejected",
-];
+const statuses = ["ALL", "DRAFT", "SENT", "VIEWED", "ACCEPTED", "REJECTED"] as const;
+const proposalStatuses = ["DRAFT", "SENT", "VIEWED", "ACCEPTED", "REJECTED"] as const;
 
-export function ProposalList() {
-  const {
-    clearFeedback,
-    deleteProposal,
-    feedback,
-    isHydrated,
-    proposals,
-    updateProposalStatus,
-  } = useProposalFlow();
+interface ProposalListItem {
+  id: string;
+  title: string;
+  clientName: string;
+  amount: number;
+  status: string;
+  updatedAt: string;
+}
+
+function formatStatus(status: string) {
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}
+
+export function ProposalList({
+  proposals,
+  message,
+}: {
+  proposals: ProposalListItem[];
+  message?: string;
+}) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<(typeof statuses)[number]>("All");
+  const [status, setStatus] = useState<(typeof statuses)[number]>("ALL");
 
   const filteredProposals = useMemo(() => {
     return proposals.filter((proposal) => {
-      const matchesStatus = status === "All" || proposal.status === status;
-      const matchesQuery = `${proposal.title} ${proposal.client}`
+      const matchesStatus = status === "ALL" || proposal.status === status;
+      const matchesQuery = `${proposal.title} ${proposal.clientName}`
         .toLowerCase()
         .includes(query.toLowerCase());
 
@@ -53,21 +58,9 @@ export function ProposalList() {
         <LinkButton href="/dashboard/proposals/new">New Proposal</LinkButton>
       </div>
 
-      {feedback ? (
-        <div
-          className={`rounded-lg border px-4 py-3 text-sm font-medium ${
-            feedback.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-800"
-          }`}
-          role="status"
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span>{feedback.message}</span>
-            <button className="text-left text-xs font-semibold uppercase" onClick={clearFeedback} type="button">
-              Dismiss
-            </button>
-          </div>
+      {message ? (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+          {message}
         </div>
       ) : null}
 
@@ -93,14 +86,14 @@ export function ProposalList() {
                   onClick={() => setStatus(item)}
                   type="button"
                 >
-                  {item}
+                  {formatStatus(item)}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="overflow-hidden rounded-lg border border-slate-200">
-            <div className="hidden grid-cols-[1.4fr_1fr_0.7fr_0.9fr_0.8fr_0.6fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 lg:grid">
+            <div className="hidden grid-cols-[1.3fr_1fr_0.7fr_0.9fr_0.8fr_0.8fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 lg:grid">
               <span>Proposal</span>
               <span>Client</span>
               <span>Amount</span>
@@ -109,9 +102,7 @@ export function ProposalList() {
               <span>Actions</span>
             </div>
             <div className="divide-y divide-slate-200">
-              {!isHydrated ? (
-                <div className="p-8 text-center text-sm text-slate-500">Loading proposals...</div>
-              ) : filteredProposals.length === 0 ? (
+              {filteredProposals.length === 0 ? (
                 <div className="p-8 text-center">
                   <p className="font-semibold text-slate-950">No proposals found</p>
                   <p className="mt-2 text-sm text-slate-500">
@@ -124,44 +115,64 @@ export function ProposalList() {
               ) : (
                 filteredProposals.map((proposal) => (
                   <div
-                    className="grid gap-4 px-4 py-4 lg:grid-cols-[1.4fr_1fr_0.7fr_0.9fr_0.8fr_0.6fr] lg:items-center"
+                    className="grid gap-4 px-4 py-4 lg:grid-cols-[1.3fr_1fr_0.7fr_0.9fr_0.8fr_0.8fr] lg:items-center"
                     key={proposal.id}
                   >
                     <div>
-                      <p className="font-semibold text-slate-950">{proposal.title}</p>
+                      <Link
+                        className="font-semibold text-slate-950 hover:text-slate-700"
+                        href={`/dashboard/proposals/${proposal.id}/edit`}
+                      >
+                        {proposal.title}
+                      </Link>
                       <p className="mt-1 text-xs text-slate-500">{proposal.id}</p>
                     </div>
-                    <p className="text-sm text-slate-700">{proposal.client}</p>
+                    <p className="text-sm text-slate-700">{proposal.clientName}</p>
                     <p className="text-sm font-semibold text-slate-950">
                       {formatCurrency(proposal.amount)}
                     </p>
                     <div className="space-y-2">
                       <StatusBadge status={proposal.status} />
-                      <select
-                        aria-label={`Change status for ${proposal.title}`}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                        onChange={(event) =>
-                          updateProposalStatus(proposal.id, event.target.value as ProposalStatus)
-                        }
-                        value={proposal.status}
-                      >
-                        {statuses
-                          .filter((item): item is ProposalStatus => item !== "All")
-                          .map((item) => (
+                      <form action={changeProposalStatusAction}>
+                        <input name="id" type="hidden" value={proposal.id} />
+                        <select
+                          aria-label={`Change status for ${proposal.title}`}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                          defaultValue={proposal.status}
+                          name="status"
+                          onChange={(event) => event.currentTarget.form?.requestSubmit()}
+                        >
+                          {proposalStatuses.map((item) => (
                             <option key={item} value={item}>
-                              {item}
+                              {formatStatus(item)}
                             </option>
                           ))}
-                      </select>
+                        </select>
+                      </form>
                     </div>
-                    <p className="text-sm text-slate-500">{proposal.updatedAt}</p>
-                    <Button
-                      onClick={() => deleteProposal(proposal.id)}
-                      type="button"
-                      variant="danger"
-                    >
-                      Delete
-                    </Button>
+                    <p className="text-sm text-slate-500">{formatDate(proposal.updatedAt)}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <LinkButton
+                        className="px-3 py-1.5 text-xs"
+                        href={`/dashboard/proposals/${proposal.id}/edit`}
+                        variant="secondary"
+                      >
+                        Edit
+                      </LinkButton>
+                      <form
+                        action={deleteProposalAction}
+                        onSubmit={(event) => {
+                          if (!window.confirm("Delete this proposal? This cannot be undone.")) {
+                            event.preventDefault();
+                          }
+                        }}
+                      >
+                        <input name="id" type="hidden" value={proposal.id} />
+                        <Button className="px-3 py-1.5 text-xs" type="submit" variant="danger">
+                          Delete
+                        </Button>
+                      </form>
+                    </div>
                   </div>
                 ))
               )}

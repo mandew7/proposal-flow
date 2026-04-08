@@ -7,7 +7,18 @@ const navItems = [
   { label: "Settings", href: "/dashboard/settings" },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ role }: { role?: string }) {
+  const items =
+    role === "ADMIN"
+      ? [
+          ...navItems,
+          { label: "Admin", href: "/admin" },
+          { label: "Admin Users", href: "/admin/users" },
+          { label: "Admin Activity", href: "/admin/activity" },
+          { label: "Admin Proposals", href: "/admin/proposals" },
+        ]
+      : navItems;
+
   return (
     <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-slate-950 text-white lg:block">
       <div className="flex h-full min-h-screen flex-col">
@@ -18,7 +29,7 @@ export function AppSidebar() {
           <p className="mt-1 text-sm text-slate-400">Proposal workspace</p>
         </div>
         <nav className="flex-1 space-y-1 px-4 py-5">
-          {navItems.map((item) => (
+          {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}

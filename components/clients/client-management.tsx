@@ -1,78 +1,46 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { createClientAction, type ClientActionState } from "@/app/actions/clients";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
-import { formatCurrency } from "@/lib/mock-data";
-import { useProposalFlow } from "@/lib/proposalflow-store";
+import { formatCurrency } from "@/lib/format";
 
-export function ClientManagement() {
-  const { addClient, clearFeedback, clients, feedback, isHydrated, proposals } = useProposalFlow();
+interface ClientListItem {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  proposals: number;
+  totalValue: number;
+}
+
+const initialState: ClientActionState = { message: "", tone: "error" };
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button disabled={pending} type="submit">
+      {pending ? "Saving..." : "Save Client"}
+    </Button>
+  );
+}
+
+export function ClientManagement({ clients }: { clients: ClientListItem[] }) {
+  const [state, formAction] = useActionState(createClientAction, initialState);
   const [isAddingClient, setIsAddingClient] = useState(false);
   const [query, setQuery] = useState("");
-  const [name, setName] = useState("");
-  const [company, setCompany] = useState("");
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const clientsWithMetrics = useMemo(() => {
-    return clients.map((client) => {
-      const clientProposals = proposals.filter((proposal) => {
-        const proposalClient = proposal.client.toLowerCase();
-        return (
-          proposalClient === client.company.toLowerCase() ||
-          proposalClient === client.name.toLowerCase()
-        );
-      });
-
-      return {
-        ...client,
-        proposals: clientProposals.length,
-        totalValue: clientProposals.reduce((total, proposal) => total + proposal.amount, 0),
-      };
-    });
-  }, [clients, proposals]);
 
   const filteredClients = useMemo(() => {
     const normalizedQuery = query.toLowerCase();
 
-    return clientsWithMetrics.filter((client) =>
+    return clients.filter((client) =>
       `${client.name} ${client.company} ${client.email}`.toLowerCase().includes(normalizedQuery),
     );
-  }, [clientsWithMetrics, query]);
-
-  function resetForm() {
-    setName("");
-    setCompany("");
-    setEmail("");
-    setError("");
-    setIsSubmitting(false);
-  }
-
-  function handleSubmit() {
-    setError("");
-
-    if (!name.trim() || !company.trim() || !email.trim()) {
-      setError("Please complete the client name, company, and email.");
-      return;
-    }
-
-    if (!email.includes("@")) {
-      setError("Please enter a valid client email address.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    addClient({
-      name: name.trim(),
-      company: company.trim(),
-      email: email.trim(),
-    });
-    resetForm();
-    setIsAddingClient(false);
-  }
+  }, [clients, query]);
 
   return (
     <div className="space-y-6">
@@ -88,65 +56,35 @@ export function ClientManagement() {
         </Button>
       </div>
 
-      {feedback ? (
-        <div
-          className={`rounded-lg border px-4 py-3 text-sm font-medium ${
-            feedback.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-800"
-          }`}
-          role="status"
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span>{feedback.message}</span>
-            <button className="text-left text-xs font-semibold uppercase" onClick={clearFeedback} type="button">
-              Dismiss
-            </button>
-          </div>
-        </div>
-      ) : null}
-
       {isAddingClient ? (
         <Card>
           <CardContent>
-            <form className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr_auto]" onSubmit={(event) => event.preventDefault()}>
+            <form action={formAction} className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr_auto]">
               <div className="space-y-2">
                 <Label htmlFor="client-name">Name</Label>
-                <Input
-                  id="client-name"
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Taylor Morgan"
-                  value={name}
-                />
+                <Input id="client-name" name="name" placeholder="Taylor Morgan" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="client-company">Company</Label>
-                <Input
-                  id="client-company"
-                  onChange={(event) => setCompany(event.target.value)}
-                  placeholder="Acme Studio"
-                  value={company}
-                />
+                <Input id="client-company" name="company" placeholder="Acme Studio" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="client-email">Email</Label>
-                <Input
-                  id="client-email"
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="taylor@acme.studio"
-                  type="email"
-                  value={email}
-                />
+                <Input id="client-email" name="email" placeholder="taylor@acme.studio" type="email" />
               </div>
               <div className="flex items-end">
-                <Button disabled={!isHydrated || isSubmitting} onClick={handleSubmit} type="button">
-                  {isSubmitting ? "Saving..." : "Save Client"}
-                </Button>
+                <SubmitButton />
               </div>
             </form>
-            {error ? (
-              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
-                {error}
+            {state.message ? (
+              <p
+                className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+                  state.tone === "success"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-red-200 bg-red-50 text-red-800"
+                }`}
+              >
+                {state.message}
               </p>
             ) : null}
           </CardContent>
@@ -171,9 +109,7 @@ export function ClientManagement() {
               <span>Total value</span>
             </div>
             <div className="divide-y divide-slate-200">
-              {!isHydrated ? (
-                <div className="p-8 text-center text-sm text-slate-500">Loading clients...</div>
-              ) : filteredClients.length === 0 ? (
+              {filteredClients.length === 0 ? (
                 <div className="p-8 text-center">
                   <p className="font-semibold text-slate-950">No clients found</p>
                   <p className="mt-2 text-sm text-slate-500">

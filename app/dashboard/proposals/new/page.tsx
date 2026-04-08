@@ -1,6 +1,14 @@
-import { NewProposalForm } from "@/components/proposals/new-proposal-form";
+import { ProposalForm } from "@/components/proposals/proposal-form";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
-export default function NewProposalPage() {
+export default async function NewProposalPage() {
+  const user = await requireUser();
+  const clients = await prisma.client.findMany({
+    where: { userId: user.id },
+    orderBy: { company: "asc" },
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -9,7 +17,13 @@ export default function NewProposalPage() {
           Draft a client proposal now; real save and send actions can connect to APIs later.
         </p>
       </div>
-      <NewProposalForm />
+      <ProposalForm
+        clients={clients.map((client) => ({
+          id: client.id,
+          company: client.company,
+          name: client.name,
+        }))}
+      />
     </div>
   );
 }

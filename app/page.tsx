@@ -74,7 +74,7 @@ export default function LandingPage() {
                 Start free
               </LinkButton>
               <LinkButton href="/dashboard" variant="secondary" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
-                View demo dashboard
+                Open dashboard
               </LinkButton>
             </div>
           </div>

@@ -1,10 +1,8 @@
-import { GuestOnly } from "@/components/auth/auth-guard";
 import { RegisterForm } from "@/components/auth/register-form";
+import { redirectAuthenticatedUser } from "@/lib/auth";
 
-export default function RegisterPage() {
-  return (
-    <GuestOnly>
-      <RegisterForm />
-    </GuestOnly>
-  );
+export default async function RegisterPage() {
+  await redirectAuthenticatedUser();
+
+  return <RegisterForm />;
 }
