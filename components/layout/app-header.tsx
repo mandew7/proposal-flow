@@ -23,7 +23,13 @@ export function AppHeader({
   user: { name: string; email: string; role: string };
 }) {
   const pathname = usePathname();
-  const title = titles[pathname] ?? "Workspace";
+  const title = pathname.startsWith("/dashboard/clients/")
+    ? "Client details"
+    : pathname.startsWith("/dashboard/proposals/") && pathname.endsWith("/edit")
+      ? "Edit proposal"
+      : pathname.startsWith("/dashboard/proposals/")
+        ? "Proposal details"
+        : titles[pathname] ?? "Workspace";
   const initials =
     user.name
       .split(" ")
@@ -41,9 +47,10 @@ export function AppHeader({
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Input
-            aria-label="Search workspace"
+            aria-label="Workspace search coming soon"
             className="sm:w-72"
-            placeholder="Search proposals, clients..."
+            disabled
+            placeholder="Workspace search coming soon"
             type="search"
           />
           <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">

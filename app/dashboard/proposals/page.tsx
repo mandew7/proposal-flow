@@ -17,6 +17,8 @@ export default async function ProposalsPage({
       proposals={proposals.map((proposal) => ({
         id: proposal.id,
         title: proposal.title,
+        description: proposal.description,
+        clientId: proposal.client?.id ?? null,
         clientName: proposal.client?.company ?? "No client",
         amount: proposal.amount,
         status: proposal.status,

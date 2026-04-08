@@ -15,6 +15,8 @@ const proposalStatuses = ["DRAFT", "SENT", "VIEWED", "ACCEPTED", "REJECTED"] as 
 interface ProposalListItem {
   id: string;
   title: string;
+  description: string;
+  clientId: string | null;
   clientName: string;
   amount: number;
   status: string;
@@ -38,7 +40,7 @@ export function ProposalList({
   const filteredProposals = useMemo(() => {
     return proposals.filter((proposal) => {
       const matchesStatus = status === "ALL" || proposal.status === status;
-      const matchesQuery = `${proposal.title} ${proposal.clientName}`
+      const matchesQuery = `${proposal.title} ${proposal.description} ${proposal.clientName} ${proposal.status}`
         .toLowerCase()
         .includes(query.toLowerCase());
 
@@ -70,7 +72,7 @@ export function ProposalList({
             <Input
               className="lg:max-w-sm"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search proposals..."
+              placeholder="Search proposals by title, description, client, or status..."
               type="search"
               value={query}
             />
@@ -127,7 +129,16 @@ export function ProposalList({
                       </Link>
                       <p className="mt-1 text-xs text-slate-500">{proposal.id}</p>
                     </div>
-                    <p className="text-sm text-slate-700">{proposal.clientName}</p>
+                    {proposal.clientId ? (
+                      <Link
+                        className="text-sm text-slate-700 hover:text-slate-950"
+                        href={`/dashboard/clients/${proposal.clientId}`}
+                      >
+                        {proposal.clientName}
+                      </Link>
+                    ) : (
+                      <p className="text-sm text-slate-700">{proposal.clientName}</p>
+                    )}
                     <p className="text-sm font-semibold text-slate-950">
                       {formatCurrency(proposal.amount)}
                     </p>

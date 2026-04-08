@@ -26,6 +26,7 @@ export default async function ProposalDetailsPage({ params }: { params: Promise<
         updatedAt: proposalData.proposal.updatedAt,
         client: proposalData.proposal.client
           ? {
+              id: proposalData.proposal.client.id,
               name: proposalData.proposal.client.name,
               company: proposalData.proposal.client.company,
               email: proposalData.proposal.client.email,

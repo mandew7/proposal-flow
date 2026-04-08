@@ -2,6 +2,7 @@ import { LinkButton } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, formatMetadata } from "@/lib/format";
+import Link from "next/link";
 
 interface ProposalDetailItem {
   id: string;
@@ -13,6 +14,7 @@ interface ProposalDetailItem {
   dueDate: Date;
   updatedAt: Date;
   client: {
+    id: string;
     name: string;
     company: string;
     email: string;
@@ -85,7 +87,16 @@ export function ProposalDetails({
           <Card>
             <CardHeader title="Client" description="Primary recipient for this proposal." />
             <CardContent className="space-y-3">
-              <p className="font-semibold text-slate-950">{proposal.client?.company ?? "No client attached"}</p>
+              {proposal.client ? (
+                <Link
+                  className="font-semibold text-slate-950 hover:text-slate-700"
+                  href={`/dashboard/clients/${proposal.client.id}`}
+                >
+                  {proposal.client.company}
+                </Link>
+              ) : (
+                <p className="font-semibold text-slate-950">No client attached</p>
+              )}
               <p className="text-sm text-slate-600">{proposal.client?.name ?? "No contact"}</p>
               <p className="text-sm text-slate-500">{proposal.client?.email ?? "No email"}</p>
             </CardContent>

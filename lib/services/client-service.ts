@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
 
+const activeStatuses = new Set(["DRAFT", "SENT", "VIEWED"]);
+const closedStatuses = new Set(["ACCEPTED", "REJECTED"]);
+
 function sanitizeText(value: string) {
   return value.trim().replace(/\s+/g, " ");
 }
@@ -53,4 +56,48 @@ export async function listClientsForUser(userId: string) {
     orderBy: { company: "asc" },
     include: { proposals: true },
   });
+}
+
+export async function getClientDetailsForUser(userId: string, clientId: string) {
+  const client = await prisma.client.findFirst({
+    where: {
+      id: clientId,
+      userId,
+    },
+    include: {
+      proposals: {
+        orderBy: { updatedAt: "desc" },
+      },
+    },
+  });
+
+  if (!client) {
+    return null;
+  }
+
+  const now = new Date();
+  const activeDeals = client.proposals.filter((proposal) => activeStatuses.has(proposal.status));
+  const upcomingDeals = client.proposals.filter((proposal) => proposal.dueDate > now);
+  const closedDeals = client.proposals.filter((proposal) => closedStatuses.has(proposal.status));
+  const totalProposalValue = client.proposals.reduce((total, proposal) => total + proposal.amount, 0);
+  const acceptedProposalValue = client.proposals
+    .filter((proposal) => proposal.status === "ACCEPTED")
+    .reduce((total, proposal) => total + proposal.amount, 0);
+
+  return {
+    client,
+    stats: {
+      totalProposals: client.proposals.length,
+      totalProposalValue,
+      acceptedProposalValue,
+      activeDeals: activeDeals.length,
+      upcomingDeals: upcomingDeals.length,
+      closedDeals: closedDeals.length,
+    },
+    groupedProposals: {
+      activeDeals,
+      upcomingDeals,
+      closedDeals,
+    },
+  };
 }

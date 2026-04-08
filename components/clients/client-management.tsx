@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createClientAction, type ClientActionState } from "@/app/actions/clients";
 import { useToast } from "@/app/providers";
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/format";
@@ -108,17 +109,18 @@ export function ClientManagement({ clients }: { clients: ClientListItem[] }) {
           <Input
             className="lg:max-w-sm"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search clients..."
+            placeholder="Search clients by name, company, or email..."
             type="search"
             value={query}
           />
           <div className="overflow-hidden rounded-lg border border-slate-200">
-            <div className="hidden grid-cols-[1fr_1fr_1.2fr_0.6fr_0.8fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 lg:grid">
+            <div className="hidden grid-cols-[1fr_1fr_1.2fr_0.6fr_0.8fr_0.8fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 lg:grid">
               <span>Name</span>
               <span>Company</span>
               <span>Email</span>
               <span>Proposals</span>
               <span>Total value</span>
+              <span>Actions</span>
             </div>
             <div className="divide-y divide-slate-200">
               {filteredClients.length === 0 ? (
@@ -131,16 +133,30 @@ export function ClientManagement({ clients }: { clients: ClientListItem[] }) {
               ) : (
                 filteredClients.map((client) => (
                   <div
-                    className="grid gap-3 px-4 py-4 lg:grid-cols-[1fr_1fr_1.2fr_0.6fr_0.8fr] lg:items-center"
+                    className="grid gap-3 px-4 py-4 lg:grid-cols-[1fr_1fr_1.2fr_0.6fr_0.8fr_0.8fr] lg:items-center"
                     key={client.id}
                   >
-                    <p className="font-semibold text-slate-950">{client.name}</p>
+                    <Link
+                      className="font-semibold text-slate-950 hover:text-slate-700"
+                      href={`/dashboard/clients/${client.id}`}
+                    >
+                      {client.name}
+                    </Link>
                     <p className="text-sm text-slate-700">{client.company}</p>
                     <p className="text-sm text-slate-500">{client.email}</p>
                     <p className="text-sm font-semibold text-slate-950">{client.proposals}</p>
                     <p className="text-sm font-semibold text-slate-950">
                       {formatCurrency(client.totalValue)}
                     </p>
+                    <div className="flex flex-wrap gap-2">
+                      <LinkButton
+                        className="px-3 py-1.5 text-xs"
+                        href={`/dashboard/clients/${client.id}`}
+                        variant="secondary"
+                      >
+                        View
+                      </LinkButton>
+                    </div>
                   </div>
                 ))
               )}
