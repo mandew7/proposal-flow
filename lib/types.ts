@@ -4,12 +4,15 @@ export interface Proposal {
   id: string;
   title: string;
   client: string;
+  description: string;
   amount: number;
   status: ProposalStatus;
   updatedAt: string;
   dueDate: string;
   owner: string;
 }
+
+export type ProposalInput = Omit<Proposal, "id" | "updatedAt" | "owner">;
 
 export interface Client {
   id: string;
@@ -19,6 +22,8 @@ export interface Client {
   proposals: number;
   totalValue: number;
 }
+
+export type ClientInput = Omit<Client, "id" | "proposals" | "totalValue">;
 
 export interface DashboardStat {
   label: string;

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { ProposalStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ const statusStyles: Record<ProposalStatus, string> = {
   Rejected: "bg-red-50 text-red-700 ring-red-200",
 };
 
-export function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
+export function Badge({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <span
       className={cn(
