@@ -1,13 +1,10 @@
 import { ProposalForm } from "@/components/proposals/proposal-form";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { listProposalOptionsForUser } from "@/lib/services/proposal-service";
 
 export default async function NewProposalPage() {
   const user = await requireUser();
-  const clients = await prisma.client.findMany({
-    where: { userId: user.id },
-    orderBy: { company: "asc" },
-  });
+  const clients = await listProposalOptionsForUser(user.id);
 
   return (
     <div className="space-y-6">

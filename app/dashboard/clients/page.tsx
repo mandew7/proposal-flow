@@ -1,14 +1,10 @@
 import { ClientManagement } from "@/components/clients/client-management";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { listClientsForUser } from "@/lib/services/client-service";
 
 export default async function ClientsPage() {
   const user = await requireUser();
-  const clients = await prisma.client.findMany({
-    where: { userId: user.id },
-    orderBy: { company: "asc" },
-    include: { proposals: true },
-  });
+  const clients = await listClientsForUser(user.id);
 
   return (
     <ClientManagement

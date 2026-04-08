@@ -1,6 +1,6 @@
 import { ProposalList } from "@/components/proposals/proposal-list";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { listProposalsForUser } from "@/lib/services/proposal-service";
 
 export default async function ProposalsPage({
   searchParams,
@@ -9,11 +9,7 @@ export default async function ProposalsPage({
 }) {
   const user = await requireUser();
   const params = await searchParams;
-  const proposals = await prisma.proposal.findMany({
-    where: { userId: user.id },
-    orderBy: { updatedAt: "desc" },
-    include: { client: true },
-  });
+  const proposals = await listProposalsForUser(user.id);
 
   return (
     <ProposalList

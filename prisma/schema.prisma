@@ -68,6 +68,7 @@ model Proposal {
   id          String         @id @default(cuid())
   userId      String
   clientId    String?
+  publicId    String         @unique @default(cuid())
   title       String
   description String
   amount      Int
@@ -81,6 +82,7 @@ model Proposal {
   @@index([userId])
   @@index([clientId])
   @@index([status])
+  @@index([publicId])
 }
 
 model ActivityLog {

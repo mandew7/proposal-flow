@@ -1,13 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
-import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { getAdminOverviewData } from "@/lib/services/user-service";
 
 export default async function AdminProposalsPage() {
-  const proposals = await prisma.proposal.findMany({
-    orderBy: { updatedAt: "desc" },
-    include: { user: true, client: true },
-  });
+  const { proposals } = await getAdminOverviewData();
 
   return (
     <div className="space-y-6">

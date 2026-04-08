@@ -121,7 +121,7 @@ export function ProposalList({
                     <div>
                       <Link
                         className="font-semibold text-slate-950 hover:text-slate-700"
-                        href={`/dashboard/proposals/${proposal.id}/edit`}
+                        href={`/dashboard/proposals/${proposal.id}`}
                       >
                         {proposal.title}
                       </Link>
@@ -152,6 +152,13 @@ export function ProposalList({
                     </div>
                     <p className="text-sm text-slate-500">{formatDate(proposal.updatedAt)}</p>
                     <div className="flex flex-wrap gap-2">
+                      <LinkButton
+                        className="px-3 py-1.5 text-xs"
+                        href={`/dashboard/proposals/${proposal.id}`}
+                        variant="secondary"
+                      >
+                        View
+                      </LinkButton>
                       <LinkButton
                         className="px-3 py-1.5 text-xs"
                         href={`/dashboard/proposals/${proposal.id}/edit`}

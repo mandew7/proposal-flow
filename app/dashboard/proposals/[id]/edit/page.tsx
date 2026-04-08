@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { ProposalForm } from "@/components/proposals/proposal-form";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { getProposalById, listProposalOptionsForUser } from "@/lib/services/proposal-service";
 
 function dateInputValue(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -10,22 +10,16 @@ function dateInputValue(date: Date) {
 export default async function EditProposalPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await params;
-  const [proposal, clients] = await Promise.all([
-    prisma.proposal.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-    }),
-    prisma.client.findMany({
-      where: { userId: user.id },
-      orderBy: { company: "asc" },
-    }),
+  const [proposalData, clients] = await Promise.all([
+    getProposalById(user.id, id),
+    listProposalOptionsForUser(user.id),
   ]);
 
-  if (!proposal) {
+  if (!proposalData) {
     notFound();
   }
+
+  const { proposal } = proposalData;
 
   return (
     <div className="space-y-6">

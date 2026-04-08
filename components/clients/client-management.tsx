@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createClientAction, type ClientActionState } from "@/app/actions/clients";
+import { useToast } from "@/app/providers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -31,6 +32,7 @@ function SubmitButton() {
 
 export function ClientManagement({ clients }: { clients: ClientListItem[] }) {
   const [state, formAction] = useActionState(createClientAction, initialState);
+  const { showToast } = useToast();
   const [isAddingClient, setIsAddingClient] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -41,6 +43,16 @@ export function ClientManagement({ clients }: { clients: ClientListItem[] }) {
       `${client.name} ${client.company} ${client.email}`.toLowerCase().includes(normalizedQuery),
     );
   }, [clients, query]);
+
+  useEffect(() => {
+    if (state.message) {
+      showToast(state);
+
+      if (state.tone === "success") {
+        setIsAddingClient(false);
+      }
+    }
+  }, [showToast, state]);
 
   return (
     <div className="space-y-6">

@@ -1,19 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { getAdminOverviewData } from "@/lib/services/user-service";
 
 export default async function AdminUsersPage() {
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      _count: {
-        select: {
-          proposals: true,
-          clients: true,
-        },
-      },
-    },
-  });
+  const { users } = await getAdminOverviewData();
 
   return (
     <div className="space-y-6">

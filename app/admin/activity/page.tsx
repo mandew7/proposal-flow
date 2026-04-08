@@ -1,16 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMetadata } from "@/lib/format";
+import { getAdminOverviewData } from "@/lib/services/user-service";
 
 export default async function AdminActivityPage() {
-  const activity = await prisma.activityLog.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    include: {
-      actorUser: true,
-      targetUser: true,
-    },
-  });
+  const { activity } = await getAdminOverviewData();
 
   return (
     <div className="space-y-6">
@@ -44,7 +37,9 @@ export default async function AdminActivityPage() {
                     <p className="text-sm font-semibold text-slate-950">{item.actorUser?.email ?? "System"}</p>
                     <p className="text-sm text-slate-700">{item.action.replaceAll("_", " ")}</p>
                     <p className="text-sm text-slate-700">{item.entityType}</p>
-                    <p className="break-words text-xs text-slate-500">{item.metadata ?? "None"}</p>
+                    <p className="break-words text-xs text-slate-500">
+                      {item.metadata ? formatMetadata(item.metadata) : "None"}
+                    </p>
                   </div>
                 ))
               )}

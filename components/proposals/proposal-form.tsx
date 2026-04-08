@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   createProposalAction,
   updateProposalAction,
   type ProposalActionState,
 } from "@/app/actions/proposals";
+import { useToast } from "@/app/providers";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
@@ -69,6 +70,7 @@ export function ProposalForm({
   const isEditing = Boolean(proposal?.id);
   const action = isEditing ? updateProposalAction : createProposalAction;
   const [state, formAction] = useActionState(action, initialState);
+  const { showToast } = useToast();
   const [title, setTitle] = useState(proposal?.title ?? "");
   const [clientId, setClientId] = useState(proposal?.clientId ?? clients[0]?.id ?? "");
   const [description, setDescription] = useState(proposal?.description ?? "");
@@ -81,6 +83,12 @@ export function ProposalForm({
     return Number.isFinite(numericAmount) ? formatCurrency(numericAmount) : "$0";
   }, [amount]);
   const selectedClient = clients.find((client) => client.id === clientId);
+
+  useEffect(() => {
+    if (state.message) {
+      showToast(state);
+    }
+  }, [showToast, state]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">

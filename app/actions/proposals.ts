@@ -2,44 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { logActivity } from "@/lib/activity";
+import { setFlashMessage } from "@/lib/flash";
+import {
+  changeProposalStatus,
+  createProposal,
+  deleteProposal,
+  respondToPublicProposal,
+  updateProposal,
+} from "@/lib/services/proposal-service";
 
 export interface ProposalActionState {
   message: string;
   tone: "success" | "error";
-}
-
-function readString(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function readAmount(formData: FormData) {
-  const amount = Number(readString(formData, "amount"));
-  return Number.isFinite(amount) ? Math.round(amount) : 0;
-}
-
-function readStatus(formData: FormData) {
-  const status = (readString(formData, "submitStatus") || readString(formData, "status")).toUpperCase();
-
-  if (["DRAFT", "SENT", "VIEWED", "ACCEPTED", "REJECTED"].includes(status)) {
-    return status as "DRAFT" | "SENT" | "VIEWED" | "ACCEPTED" | "REJECTED";
-  }
-
-  return "DRAFT";
-}
-
-async function validateClient(userId: string, clientId: string) {
-  const client = await prisma.client.findFirst({
-    where: {
-      id: clientId,
-      userId,
-    },
-  });
-
-  return client;
 }
 
 export async function createProposalAction(
@@ -47,51 +22,27 @@ export async function createProposalAction(
   formData: FormData,
 ): Promise<ProposalActionState> {
   const user = await requireUser();
-  const title = readString(formData, "title");
-  const clientId = readString(formData, "clientId");
-  const description = readString(formData, "description");
-  const amount = readAmount(formData);
-  const status = readStatus(formData);
-  const dueDate = readString(formData, "dueDate");
 
-  if (!title || !clientId || !description || !dueDate) {
-    return { tone: "error", message: "Complete the title, client, description, amount, and due date." };
+  try {
+    await createProposal(user.id, {
+      title: String(formData.get("title") ?? ""),
+      clientId: String(formData.get("clientId") ?? ""),
+      description: String(formData.get("description") ?? ""),
+      amount: Number(formData.get("amount") ?? 0),
+      status: String(formData.get("submitStatus") ?? formData.get("status") ?? ""),
+      dueDate: String(formData.get("dueDate") ?? ""),
+    });
+  } catch (error) {
+    return {
+      tone: "error",
+      message: error instanceof Error ? error.message : "We could not create that proposal.",
+    };
   }
-
-  if (amount <= 0) {
-    return { tone: "error", message: "Amount must be a positive number." };
-  }
-
-  const client = await validateClient(user.id, clientId);
-
-  if (!client) {
-    return { tone: "error", message: "Choose a valid client for this proposal." };
-  }
-
-  const proposal = await prisma.proposal.create({
-    data: {
-      userId: user.id,
-      clientId: client.id,
-      title,
-      description,
-      amount,
-      status,
-      dueDate: new Date(`${dueDate}T00:00:00`),
-    },
-  });
-
-  await logActivity({
-    actorUserId: user.id,
-    targetUserId: user.id,
-    action: "PROPOSAL_CREATED",
-    entityType: "Proposal",
-    entityId: proposal.id,
-    metadata: { title: proposal.title, status: proposal.status },
-  });
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/proposals");
-  redirect("/dashboard/proposals?message=Proposal%20created");
+  await setFlashMessage({ tone: "success", message: "Proposal created." });
+  redirect("/dashboard/proposals");
 }
 
 export async function updateProposalAction(
@@ -99,111 +50,92 @@ export async function updateProposalAction(
   formData: FormData,
 ): Promise<ProposalActionState> {
   const user = await requireUser();
-  const id = readString(formData, "id");
-  const title = readString(formData, "title");
-  const clientId = readString(formData, "clientId");
-  const description = readString(formData, "description");
-  const amount = readAmount(formData);
-  const status = readStatus(formData);
-  const dueDate = readString(formData, "dueDate");
 
-  if (!id || !title || !clientId || !description || !dueDate) {
-    return { tone: "error", message: "Complete the title, client, description, amount, and due date." };
+  try {
+    await updateProposal(user.id, {
+      id: String(formData.get("id") ?? ""),
+      title: String(formData.get("title") ?? ""),
+      clientId: String(formData.get("clientId") ?? ""),
+      description: String(formData.get("description") ?? ""),
+      amount: Number(formData.get("amount") ?? 0),
+      status: String(formData.get("submitStatus") ?? formData.get("status") ?? ""),
+      dueDate: String(formData.get("dueDate") ?? ""),
+    });
+  } catch (error) {
+    return {
+      tone: "error",
+      message: error instanceof Error ? error.message : "We could not update that proposal.",
+    };
   }
-
-  if (amount <= 0) {
-    return { tone: "error", message: "Amount must be a positive number." };
-  }
-
-  const [proposal, client] = await Promise.all([
-    prisma.proposal.findFirst({ where: { id, userId: user.id } }),
-    validateClient(user.id, clientId),
-  ]);
-
-  if (!proposal) {
-    return { tone: "error", message: "Proposal not found." };
-  }
-
-  if (!client) {
-    return { tone: "error", message: "Choose a valid client for this proposal." };
-  }
-
-  const updatedProposal = await prisma.proposal.update({
-    where: { id },
-    data: {
-      clientId: client.id,
-      title,
-      description,
-      amount,
-      status,
-      dueDate: new Date(`${dueDate}T00:00:00`),
-    },
-  });
-
-  await logActivity({
-    actorUserId: user.id,
-    targetUserId: user.id,
-    action: "PROPOSAL_UPDATED",
-    entityType: "Proposal",
-    entityId: updatedProposal.id,
-    metadata: { title: updatedProposal.title, status: updatedProposal.status },
-  });
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/proposals");
-  redirect("/dashboard/proposals?message=Proposal%20updated");
+  await setFlashMessage({ tone: "success", message: "Proposal updated." });
+  redirect("/dashboard/proposals");
 }
 
 export async function changeProposalStatusAction(formData: FormData) {
   const user = await requireUser();
-  const id = readString(formData, "id");
-  const status = readStatus(formData);
 
-  const proposal = await prisma.proposal.findFirst({ where: { id, userId: user.id } });
+  try {
+    await changeProposalStatus(
+      user.id,
+      String(formData.get("id") ?? ""),
+      String(formData.get("status") ?? ""),
+    );
 
-  if (!proposal) {
-    redirect("/dashboard/proposals?message=Proposal%20not%20found");
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/proposals");
+    await setFlashMessage({ tone: "success", message: "Proposal status updated." });
+  } catch (error) {
+    await setFlashMessage({
+      tone: "error",
+      message: error instanceof Error ? error.message : "We could not update the proposal status.",
+    });
   }
 
-  await prisma.proposal.update({
-    where: { id },
-    data: { status },
-  });
-
-  await logActivity({
-    actorUserId: user.id,
-    targetUserId: user.id,
-    action: "PROPOSAL_STATUS_CHANGED",
-    entityType: "Proposal",
-    entityId: id,
-    metadata: { title: proposal.title, status },
-  });
-
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/proposals");
-  redirect("/dashboard/proposals?message=Status%20updated");
+  redirect("/dashboard/proposals");
 }
 
 export async function deleteProposalAction(formData: FormData) {
   const user = await requireUser();
-  const id = readString(formData, "id");
-  const proposal = await prisma.proposal.findFirst({ where: { id, userId: user.id } });
 
-  if (!proposal) {
-    redirect("/dashboard/proposals?message=Proposal%20not%20found");
+  try {
+    await deleteProposal(user.id, String(formData.get("id") ?? ""));
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/proposals");
+    await setFlashMessage({ tone: "success", message: "Proposal deleted." });
+  } catch (error) {
+    await setFlashMessage({
+      tone: "error",
+      message: error instanceof Error ? error.message : "We could not delete that proposal.",
+    });
   }
 
-  await prisma.proposal.delete({ where: { id } });
-  await logActivity({
-    actorUserId: user.id,
-    targetUserId: user.id,
-    action: "PROPOSAL_DELETED",
-    entityType: "Proposal",
-    entityId: id,
-    metadata: { title: proposal.title },
-  });
+  redirect("/dashboard/proposals");
+}
 
+export async function respondToPublicProposalAction(
+  _previousState: ProposalActionState,
+  formData: FormData,
+): Promise<ProposalActionState> {
+  const publicId = String(formData.get("publicId") ?? "");
+
+  try {
+    await respondToPublicProposal(publicId, String(formData.get("status") ?? ""));
+  } catch (error) {
+    return {
+      tone: "error",
+      message: error instanceof Error ? error.message : "We could not save that response.",
+    };
+  }
+
+  revalidatePath(`/p/${publicId}`);
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/proposals");
-  redirect("/dashboard/proposals?message=Proposal%20deleted");
+
+  return {
+    tone: "success",
+    message: "Your response has been recorded.",
+  };
 }

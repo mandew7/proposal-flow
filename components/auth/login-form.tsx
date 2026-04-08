@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction, type AuthActionState } from "@/app/actions/auth";
+import { useToast } from "@/app/providers";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -25,6 +26,13 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [state, formAction] = useActionState(loginAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (state.message && state.tone === "error") {
+      showToast(state);
+    }
+  }, [showToast, state]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">

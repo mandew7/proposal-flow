@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import {
   updatePasswordAction,
   updateProfileAction,
   type SettingsActionState,
 } from "@/app/actions/settings";
+import { useToast } from "@/app/providers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -48,6 +49,19 @@ export function SettingsPanel({
 }) {
   const [profileState, profileAction] = useActionState(updateProfileAction, initialState);
   const [passwordState, passwordAction] = useActionState(updatePasswordAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (profileState.message) {
+      showToast(profileState);
+    }
+  }, [profileState, showToast]);
+
+  useEffect(() => {
+    if (passwordState.message) {
+      showToast(passwordState);
+    }
+  }, [passwordState, showToast]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-2">
