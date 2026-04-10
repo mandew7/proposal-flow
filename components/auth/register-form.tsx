@@ -44,7 +44,7 @@ export function RegisterForm() {
           Create your workspace
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Start with a clean proposal pipeline. Backend authentication comes next.
+          Set up your own ProposalFlow workspace with secure email and password sign-in.
         </p>
         <form action={formAction} className="mt-8 space-y-5">
           {state.message ? (

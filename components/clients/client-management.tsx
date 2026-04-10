@@ -127,8 +127,15 @@ export function ClientManagement({ clients }: { clients: ClientListItem[] }) {
                 <div className="p-8 text-center">
                   <p className="font-semibold text-slate-950">No clients found</p>
                   <p className="mt-2 text-sm text-slate-500">
-                    Add a client or adjust your search query.
+                    {query
+                      ? "Try a different name, company, or email search."
+                      : "Add your first client to start building proposal history."}
                   </p>
+                  {!query ? (
+                    <Button className="mt-5" onClick={() => setIsAddingClient(true)} type="button">
+                      Add your first client
+                    </Button>
+                  ) : null}
                 </div>
               ) : (
                 filteredClients.map((client) => (

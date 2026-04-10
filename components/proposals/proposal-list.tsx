@@ -108,10 +108,12 @@ export function ProposalList({
                 <div className="p-8 text-center">
                   <p className="font-semibold text-slate-950">No proposals found</p>
                   <p className="mt-2 text-sm text-slate-500">
-                    Create a proposal or adjust your search and filters.
+                    {query || status !== "ALL"
+                      ? "Adjust your search or status filter to find matching proposals."
+                      : "Create your first proposal to start building a live pipeline."}
                   </p>
                   <LinkButton className="mt-5" href="/dashboard/proposals/new">
-                    New Proposal
+                    Create proposal
                   </LinkButton>
                 </div>
               ) : (

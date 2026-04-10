@@ -9,7 +9,7 @@ import {
 } from "@/app/actions/proposals";
 import { useToast } from "@/app/providers";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
@@ -100,7 +100,13 @@ export function ProposalForm({
         <CardContent>
           {clients.length === 0 ? (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              Create a client before drafting a proposal.
+              <p className="font-semibold">Add a client before creating a proposal.</p>
+              <p className="mt-2">
+                ProposalFlow connects each proposal to a real client record so dashboards and deal pages stay useful.
+              </p>
+              <LinkButton className="mt-4" href="/dashboard/clients" variant="secondary">
+                Go to clients
+              </LinkButton>
             </div>
           ) : (
             <form action={formAction} className="space-y-5">

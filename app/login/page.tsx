@@ -4,5 +4,5 @@ import { redirectAuthenticatedUser } from "@/lib/auth";
 export default async function LoginPage() {
   await redirectAuthenticatedUser();
 
-  return <LoginForm />;
+  return <LoginForm demoPassword={process.env.DEMO_PASSWORD ?? "DemoPass123!"} />;
 }
