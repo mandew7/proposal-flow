@@ -286,7 +286,7 @@ export async function registerPublicProposalView(publicId: string) {
     return null;
   }
 
-  if (proposal.status === "SENT") {
+  if (proposal.status === "SENT" || proposal.status === "DRAFT") {
     const viewedProposal = await prisma.proposal.update({
       where: { id: proposal.id },
       data: { status: "VIEWED" },
@@ -298,7 +298,7 @@ export async function registerPublicProposalView(publicId: string) {
 
     await logActivity({
       targetUserId: proposal.userId,
-      action: "PROPOSAL_VIEWED_PUBLIC",
+      action: "PROPOSAL_VIEWED",
       entityType: "Proposal",
       entityId: proposal.id,
       metadata: { title: proposal.title, status: "VIEWED" },

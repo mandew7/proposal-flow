@@ -70,10 +70,10 @@ export default function LandingPage() {
               track client intent, and keep revenue conversations moving without a messy spreadsheet.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <LinkButton href="/register" className="bg-white text-slate-950 hover:bg-slate-100">
+              <LinkButton href="/register" variant="secondary">
                 Start free
               </LinkButton>
-              <LinkButton href="/dashboard" variant="secondary" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
+              <LinkButton href="/dashboard" className="border border-white/20">
                 Open dashboard
               </LinkButton>
             </div>
@@ -156,7 +156,7 @@ export default function LandingPage() {
               Replace scattered docs and status guesswork with a workspace your team can extend.
             </p>
           </div>
-          <LinkButton href="/register" className="bg-white text-slate-950 hover:bg-slate-100">
+          <LinkButton href="/register" variant="secondary">
             Get Started
           </LinkButton>
         </div>

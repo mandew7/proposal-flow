@@ -34,16 +34,23 @@ export function DashboardOverview({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Dashboard</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+            Dashboard
+          </h2>
           <p className="mt-2 text-sm text-slate-500">
             Track proposal velocity, open opportunities, and recent client activity.
           </p>
         </div>
+
+        {/* ✅ FIXED BUTTONS */}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <LinkButton href="/dashboard/proposals/new" variant="secondary">
+          <LinkButton href="/dashboard/proposals/new">
             New Proposal
           </LinkButton>
-          <LinkButton href="/dashboard/clients">Manage Clients</LinkButton>
+
+          <LinkButton href="/dashboard/clients" variant="secondary">
+            Manage Clients
+          </LinkButton>
         </div>
       </div>
 
@@ -55,7 +62,10 @@ export function DashboardOverview({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card>
-          <CardHeader title="Recent proposals" description="The deals most likely to need attention." />
+          <CardHeader
+            title="Recent proposals"
+            description="The deals most likely to need attention."
+          />
           <CardContent className="space-y-4">
             {recentProposals.length === 0 ? (
               <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center">
@@ -63,7 +73,9 @@ export function DashboardOverview({
                 <p className="mt-2 text-sm text-slate-500">
                   Create your first proposal to populate the dashboard.
                 </p>
-                <LinkButton className="mt-5" href="/dashboard/proposals/new">
+
+                {/* ✅ FIXED BUTTON */}
+                <LinkButton href="/dashboard/proposals/new" className="mt-5">
                   New Proposal
                 </LinkButton>
               </div>
@@ -74,9 +86,12 @@ export function DashboardOverview({
                   key={proposal.id}
                 >
                   <div>
-                    <p className="font-semibold text-slate-950">{proposal.title}</p>
+                    <p className="font-semibold text-slate-950">
+                      {proposal.title}
+                    </p>
                     <p className="mt-1 text-sm text-slate-500">
-                      {proposal.clientName} | {formatDate(proposal.updatedAt)}
+                      {proposal.clientName} |{" "}
+                      {formatDate(proposal.updatedAt)}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
@@ -92,7 +107,10 @@ export function DashboardOverview({
         </Card>
 
         <Card>
-          <CardHeader title="Activity" description="Recent actions across the workspace." />
+          <CardHeader
+            title="Activity"
+            description="Recent actions across the workspace."
+          />
           <CardContent className="space-y-5">
             {activity.length === 0 ? (
               <p className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500">
@@ -100,10 +118,19 @@ export function DashboardOverview({
               </p>
             ) : (
               activity.map((item) => (
-                <div className="border-l-2 border-slate-200 pl-4" key={item.id}>
-                  <p className="text-sm font-semibold text-slate-950">{item.action}</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{item.detail}</p>
-                  <p className="mt-1 text-xs text-slate-400">{formatDate(item.createdAt)}</p>
+                <div
+                  className="border-l-2 border-slate-200 pl-4"
+                  key={item.id}
+                >
+                  <p className="text-sm font-semibold text-slate-950">
+                    {item.action}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {item.detail}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {formatDate(item.createdAt)}
+                  </p>
                 </div>
               ))
             )}
